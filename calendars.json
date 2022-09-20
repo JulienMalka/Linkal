@@ -1,0 +1,94 @@
+{
+  "calendars": {
+    "https://cloud.eleves.ens.fr/remote.php/dav/public-calendars/LLWm8qK9iC5YGrrR": {
+      "name": "Délégation Générale",
+      "short_name": "DG"
+    },
+    "https://cloud.eleves.ens.fr/remote.php/dav/public-calendars/2KGkWzBJGorxzyTW": {
+      "name": "La Nuit de l'ENS",
+      "short_name": "La Nuit"
+    },
+    "https://cloud.eleves.ens.fr/remote.php/dav/public-calendars/w442JdS5AaQ6czrP": {
+      "name": "Écriv'ENS"
+    },
+    "https://cloud.eleves.ens.fr/remote.php/dav/public-calendars/fRtjDkjrZyn6fxd8": {
+      "name": "K-Fêt",
+      "color": "#c63b52",
+      "default_location": "K-Fêt"
+    },
+    "https://cloud.eleves.ens.fr/remote.php/dav/public-calendars/gsZtZK8c9EmREofn": {
+      "name": "Ernestophone"
+    },
+    "https://cloud.eleves.ens.fr/remote.php/dav/public-calendars/dTHrXnYgsEoSTjWB": {
+      "name": "Évènements (COF)",
+      "short_name": "COF"
+    },
+    "https://cloud.eleves.ens.fr/remote.php/dav/public-calendars/bCgRFByHLiCCNc55": {
+      "name": "Assemblées Générales (COF)",
+      "short_name": "AG COF"
+    },
+    "https://cloud.eleves.ens.fr/remote.php/dav/public-calendars/r4yJZDHjwNtH8wkR": {
+      "name": "BdA"
+    },
+    "https://cloud.eleves.ens.fr/remote.php/dav/public-calendars/ZtWm3MYSi388k2yk": {
+      "name": "DDR"
+    },
+    "https://cloud.eleves.ens.fr/remote.php/dav/public-calendars/T5WoHbs4FT5A945Z": {
+      "name": "CinéClub"
+    },
+    "https://cloud.eleves.ens.fr/remote.php/dav/public-calendars/6SHG6cg9d7S3qqwD": {
+      "name": "Club Inutile ☔",
+      "initial": false
+    },
+    "https://cloud.eleves.ens.fr/remote.php/dav/public-calendars/Ekjb4kDqMMqwJXZF": {
+      "name": "Rentrée des départements",
+      "short_name": "Dpt"
+    },
+    "https://cloud.eleves.ens.fr/remote.php/dav/public-calendars/8SKP62tQJP65K8EW": {
+      "name": "Conférences de recherche",
+      "short_name": "Conf"
+    },
+    "https://cloud.eleves.ens.fr/remote.php/dav/public-calendars/PnRXqeq4SsSC33FM": {
+      "name": "Visites de bibliothèques",
+      "short_name": "Bibli",
+      "initial": false
+    },
+    "https://cloud.eleves.ens.fr/remote.php/dav/public-calendars/NWPtiEiz62LTtjo2": {
+      "name": "Amphis de rentrée",
+      "short_name": "Prés. de rentrée"
+    },
+    "https://cloud.eleves.ens.fr/remote.php/dav/public-calendars/JiRt58aJXay9kfyk": {
+      "name": "Réunions de rentrée des Masters",
+      "short_name": "Masters"
+    },
+    "https://cloud.eleves.ens.fr/remote.php/dav/public-calendars/5Rb4bRjCDcsFjDdQ": {
+      "name": "Activités pour les étudiants internationaux",
+      "short_name": "Internationaux"
+    },
+    "https://cloud.eleves.ens.fr/remote.php/dav/public-calendars/62wKfQRrLNz2WXjt": {
+      "name": "Divers"
+    },
+    "https://cloud.eleves.ens.fr/remote.php/dav/public-calendars/TFjE83ASCMK9rfRi": {
+      "name": "BandarrêtdurgENS",
+      "short_name": "Banda"
+    },
+    "https://cloud.eleves.ens.fr/remote.php/dav/public-calendars/TyMrLaPPDzT7yAGC": {
+      "name": "BDS"
+    },
+    "https://nuage.beta.rz.ens.wtf/remote.php/dav/public-calendars/5WrcagPPARQ3BD87": {
+      "name": "Club réseau",
+      "default_location": "Cave d'hackENS"
+    },
+    "https://nuage.beta.rz.ens.wtf/remote.php/dav/public-calendars/TFEAKjAgNFQZpNjo": {
+      "name": "hackENS",
+      "default_location": "Cave d'hackENS"
+    },
+    "https://framagenda.org/remote.php/dav/public-calendars/TFjE83ASCMK9rfRi": {
+      "name": "BandarrêtdurgENS",
+      "short_name": "Banda"
+    },
+    "https://framagenda.org/remote.php/dav/public-calendars/T5WoHbs4FT5A945Z": {
+      "name": "CinéClub"
+    }
+  }
+}
