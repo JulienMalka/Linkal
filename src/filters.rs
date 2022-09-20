@@ -3,8 +3,8 @@ use crate::Calendar;
 use warp::Filter;
 
 fn with_cals(
-    calendars: &Vec<Calendar>,
-) -> impl Filter<Extract = (&Vec<Calendar>,), Error = std::convert::Infallible> + Clone {
+    calendars: Vec<Calendar>,
+) -> impl Filter<Extract = (Vec<Calendar>,), Error = std::convert::Infallible> + Clone {
     warp::any().map(move || calendars.clone())
 }
 
@@ -17,7 +17,7 @@ pub fn get_home_url() -> impl Filter<Extract = impl warp::Reply, Error = warp::R
 }
 
 pub fn get_calendars(
-    calendars: &Vec<Calendar>,
+    calendars: Vec<Calendar>,
 ) -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
     warp::path!("cals")
         .and(with_cals(calendars))
@@ -38,7 +38,7 @@ pub fn api(
 ) -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
     index()
         .or(get_home_url())
-        .or(get_calendars(&calendars))
+        .or(get_calendars(calendars.clone()))
         .or(get_events())
         .or(get_events_inutile())
 }

@@ -124,7 +124,7 @@ pub async fn handle_events_inutile() -> Result<impl warp::Reply, Rejection> {
         .body(finalreq));
 }
 
-pub async fn handle_cals(calendars: &Vec<Calendar>) -> Result<impl warp::Reply, Infallible> {
+pub async fn handle_cals(calendars: Vec<Calendar>) -> Result<impl warp::Reply, Infallible> {
     return Ok(Response::builder()
             .header("Content-Type", "application/xml; charset=utf-8")
             .body(r#"<?xml version="1.0"?>

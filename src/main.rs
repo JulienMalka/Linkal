@@ -9,7 +9,7 @@ mod handlers;
 struct ConversionError;
 impl Reject for ConversionError {}
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Calendar {
     name: String,
     url: String,
@@ -18,7 +18,7 @@ pub struct Calendar {
 
 #[tokio::main]
 async fn main() {
-    let path = "../data/calendars.json";
+    let path = "./data/calendars.json";
     let data = fs::read_to_string(path).expect("Unable to read file");
     let res: serde_json::Value = serde_json::from_str(&data).unwrap();
     let cals = res["calendars"].clone();
