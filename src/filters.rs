@@ -14,7 +14,7 @@ pub fn index() -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejectio
 }
 
 pub fn get_home_url() -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
-    warp::path!("principals" / "ens").and_then(handlers::handle_home_url)
+    warp::path!("principals" / "mock").and_then(handlers::handle_home_url)
 }
 
 pub fn get_calendars(
@@ -25,13 +25,12 @@ pub fn get_calendars(
         .and_then(handlers::handle_cals)
 }
 
-pub fn get_events() -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
-    warp::path!("cals" / "personal").and_then(handlers::handle_events)
-}
-
-pub fn get_events_inutile(
+pub fn get_events(
+    calendars: HashMap<String, Calendar>,
 ) -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
-    warp::path!("cals" / "inutile").and_then(handlers::handle_events_inutile)
+    warp::path!("cals" / String)
+        .and(with_cals(calendars))
+        .and_then(handlers::handle_events)
 }
 
 pub fn api(
@@ -40,6 +39,5 @@ pub fn api(
     index()
         .or(get_home_url())
         .or(get_calendars(calendars.clone()))
-        .or(get_events())
-        .or(get_events_inutile())
+        .or(get_events(calendars.clone()))
 }

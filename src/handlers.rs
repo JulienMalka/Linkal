@@ -16,7 +16,7 @@ pub async fn handle_index() -> Result<impl warp::Reply, Infallible> {
         <d:propstat>
             <d:prop>
                 <d:current-user-principal>
-                    <d:href>/principals/ens/</d:href>
+                    <d:href>/principals/mock/</d:href>
                 </d:current-user-principal>
             </d:prop>
             <d:status>HTTP/1.1 200 OK</d:status>
@@ -27,7 +27,7 @@ pub async fn handle_index() -> Result<impl warp::Reply, Infallible> {
         <d:propstat>
             <d:prop>
                 <d:current-user-principal>
-                    <d:href>/principals/ens/</d:href>
+                    <d:href>/principals/mock/</d:href>
                 </d:current-user-principal>
             </d:prop>
            </d:propstat>
@@ -79,36 +79,13 @@ pub static CALENDAR_EVENTS_REQUEST: &str = r#"
     </c:calendar-query>
 "#;
 
-pub async fn handle_events() -> Result<impl warp::Reply, Rejection> {
+pub async fn handle_events(
+    path: String,
+    calendars: HashMap<String, Calendar>,
+) -> Result<impl warp::Reply, Rejection> {
     let client = ureq::Agent::new();
     let content = client
-        .request(
-            "REPORT",
-            "https://cloud.eleves.ens.fr/remote.php/dav/public-calendars/r4yJZDHjwNtH8wkR/",
-        )
-        .set("Depth", "1")
-        .set("Content-Type", "application/xml")
-        .send_bytes(CALENDAR_EVENTS_REQUEST.as_bytes());
-
-    let finalreq = match content {
-        Ok(s) => match s.into_string() {
-            Ok(s) => s,
-            Err(_) => return Err(warp::reject::custom(ConversionError)),
-        },
-        Err(_) => return Err(warp::reject::custom(ConversionError)),
-    };
-    return Ok(Response::builder()
-        .header("Content-Type", "application/xml; charset=utf-8")
-        .body(finalreq));
-}
-
-pub async fn handle_events_inutile() -> Result<impl warp::Reply, Rejection> {
-    let client = ureq::Agent::new();
-    let content = client
-        .request(
-            "REPORT",
-            "https://cloud.eleves.ens.fr/remote.php/dav/public-calendars/NWPtiEiz62LTtjo2/",
-        )
+        .request("REPORT", &calendars[&path].url)
         .set("Depth", "1")
         .set("Content-Type", "application/xml")
         .send_bytes(CALENDAR_EVENTS_REQUEST.as_bytes());
