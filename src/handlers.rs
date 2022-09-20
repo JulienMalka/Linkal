@@ -128,9 +128,7 @@ pub async fn handle_events_inutile() -> Result<impl warp::Reply, Rejection> {
 pub async fn handle_cals(
     calendars: HashMap<String, Calendar>,
 ) -> Result<impl warp::Reply, Infallible> {
-    return Ok(Response::builder()
-            .header("Content-Type", "application/xml; charset=utf-8")
-            .body(r#"<?xml version="1.0"?>
+    let mut body = r#"<?xml version="1.0"?>
                 <d:multistatus xmlns:d="DAV:" xmlns:s="http://sabredav.org/ns" xmlns:cal="urn:ietf:params:xml:ns:caldav" xmlns:cs="http://calendarserver.org/ns/" xmlns:oc="http://owncloud.org/ns" xmlns:nc="http://nextcloud.org/ns">
                 <d:response>
                     <d:href>/cals/</d:href>
@@ -149,39 +147,34 @@ pub async fn handle_cals(
                         </d:prop>
                         <d:status>HTTP/1.1 404 Not Found</d:status>
                     </d:propstat>
-                </d:response>
-                <d:response>
-                    <d:href>/cals/personal/</d:href>
-                    <d:propstat>
-                        <d:prop>
-                            <d:displayname>Personnel</d:displayname>
-                            <d:resourcetype>
-                                <d:collection/>
-                                <cal:calendar/>
-                            </d:resourcetype>
-                            <cal:supported-calendar-component-set>
-                                <cal:comp name="VEVENT"/>
-                            </cal:supported-calendar-component-set>
-                        </d:prop>
-                        <d:status>HTTP/1.1 200 OK</d:status>
-                    </d:propstat>
-                </d:response>
-                <d:response>
-                    <d:href>/cals/inutile/</d:href>
-                    <d:propstat>
-                        <d:prop>
-                            <d:displayname>Inutile</d:displayname>
-                            <d:resourcetype>
-                                <d:collection/>
-                                <cal:calendar/>
-                            </d:resourcetype>
-                            <cal:supported-calendar-component-set>
-                                <cal:comp name="VEVENT"/>
-                            </cal:supported-calendar-component-set>
-                        </d:prop>
-                        <d:status>HTTP/1.1 200 OK</d:status>
-                    </d:propstat>
-                </d:response>
+                </d:response>"#.to_owned();
 
-                </d:multistatus>"#));
+    for (k, v) in calendars {
+        let pattern_instanciated = format!(
+            r#"<d:response>
+                    <d:href>/cals/{}/</d:href>
+                    <d:propstat>
+                        <d:prop>
+                            <d:displayname>{}</d:displayname>
+                            <d:resourcetype>
+                                <d:collection/>
+                                <cal:calendar/>
+                            </d:resourcetype>
+                            <cal:supported-calendar-component-set>
+                                <cal:comp name="VEVENT"/>
+                            </cal:supported-calendar-component-set>
+                        </d:prop>
+                        <d:status>HTTP/1.1 200 OK</d:status>
+                    </d:propstat>
+                </d:response>"#,
+            k, v.name
+        );
+        body.push_str(&pattern_instanciated);
+    }
+
+    body.push_str("</d:multistatus>");
+
+    return Ok(Response::builder()
+        .header("Content-Type", "application/xml; charset=utf-8")
+        .body(body));
 }
