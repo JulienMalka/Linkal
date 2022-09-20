@@ -1,5 +1,6 @@
 use crate::Calendar;
 use crate::ConversionError;
+use std::collections::HashMap;
 use std::convert::Infallible;
 use ureq;
 use warp::http::Response;
@@ -124,7 +125,9 @@ pub async fn handle_events_inutile() -> Result<impl warp::Reply, Rejection> {
         .body(finalreq));
 }
 
-pub async fn handle_cals(calendars: Vec<Calendar>) -> Result<impl warp::Reply, Infallible> {
+pub async fn handle_cals(
+    calendars: HashMap<String, Calendar>,
+) -> Result<impl warp::Reply, Infallible> {
     return Ok(Response::builder()
             .header("Content-Type", "application/xml; charset=utf-8")
             .body(r#"<?xml version="1.0"?>
