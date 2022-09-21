@@ -1,5 +1,8 @@
 use crate::Calendar;
 use crate::ConversionError;
+use bytes::Bytes;
+use regex::Regex;
+use std::borrow::Cow;
 use std::collections::HashMap;
 use std::convert::Infallible;
 use ureq;
@@ -41,7 +44,7 @@ pub async fn handle_home_url() -> Result<impl warp::Reply, Infallible> {
             .body(r#"<?xml version="1.0"?>
 <d:multistatus xmlns:d="DAV:" xmlns:s="http://sabredav.org/ns" xmlns:cal="urn:ietf:params:xml:ns:caldav" xmlns:cs="http://calendarserver.org/ns/" xmlns:card="urn:ietf:params:xml:ns:carddav" xmlns:oc="http://owncloud.org/ns" xmlns:nc="http://nextcloud.org/ns">
     <d:response>
-        <d:href>/principals/ens/</d:href>
+        <d:href>/principals/mock/</d:href>
         <d:propstat>
             <d:prop>
                 <cal:calendar-home-set>
@@ -52,7 +55,7 @@ pub async fn handle_home_url() -> Result<impl warp::Reply, Infallible> {
         </d:propstat>
     </d:response>
     <d:response>
-        <d:href>/principals/ens/calendar-proxy-read/</d:href>
+        <d:href>/principals/mock/calendar-proxy-read/</d:href>
         <d:propstat>
             <d:prop>
                 <cal:calendar-home-set>
@@ -97,14 +100,44 @@ pub async fn handle_events(
         },
         Err(_) => return Err(warp::reject::custom(ConversionError)),
     };
+
+    let to_split = finalreq;
+    let splitted = to_split.split("<d:owner>");
+    let vec: Vec<&str> = splitted.collect();
+    let mut beginning = vec[0].to_owned();
+    //let mut beg_ref = &beginning;
+    if vec.len() > 1 {
+        let end = vec[1];
+        let finished = end.split("</d:owner>");
+        let vec2: Vec<&str> = finished.collect();
+        let end2 = vec2[1];
+
+        let together = format!(
+            "{}{}{}",
+            beginning, "<d:owner>/principals/mock/</d:owner>", end2
+        );
+        return Ok(Response::builder()
+            .header("Content-Type", "application/xml; charset=utf-8")
+            .body(together));
+    }
+
     return Ok(Response::builder()
         .header("Content-Type", "application/xml; charset=utf-8")
-        .body(finalreq));
+        .body(beginning));
 }
 
+//pub fn replace_owners(pieces: Vec<&str>) -> String {
+//    let result = "".to_owned();
+//    let i = 0;
+//    for element in pieces {}
+//}
+
 pub async fn handle_cals(
+    req_body: Bytes,
     calendars: HashMap<String, Calendar>,
-) -> Result<impl warp::Reply, Infallible> {
+) -> Result<impl warp::Reply, Rejection> {
+    let client = ureq::Agent::new();
+
     let mut body = r#"<?xml version="1.0"?>
                 <d:multistatus xmlns:d="DAV:" xmlns:s="http://sabredav.org/ns" xmlns:cal="urn:ietf:params:xml:ns:caldav" xmlns:cs="http://calendarserver.org/ns/" xmlns:oc="http://owncloud.org/ns" xmlns:nc="http://nextcloud.org/ns">
                 <d:response>
@@ -126,32 +159,55 @@ pub async fn handle_cals(
                     </d:propstat>
                 </d:response>"#.to_owned();
 
+    // TODO : make this async
     for (k, v) in calendars {
-        let pattern_instanciated = format!(
-            r#"<d:response>
-                    <d:href>/cals/{}/</d:href>
-                    <d:propstat>
-                        <d:prop>
-                            <d:displayname>{}</d:displayname>
-                            <d:resourcetype>
-                                <d:collection/>
-                                <cal:calendar/>
-                            </d:resourcetype>
-                            <cal:supported-calendar-component-set>
-                                <cal:comp name="VEVENT"/>
-                            </cal:supported-calendar-component-set>
-                        </d:prop>
-                        <d:status>HTTP/1.1 200 OK</d:status>
-                    </d:propstat>
-                </d:response>"#,
-            k, v.name
-        );
-        body.push_str(&pattern_instanciated);
+        let content = client
+            .request("PROPFIND", &v.url)
+            .set("Depth", "0")
+            .set("Content-Type", "application/xml")
+            .send_bytes(req_body.as_ref());
+
+        let finalreq = match content {
+            Ok(s) => match s.into_string() {
+                Ok(s) => s,
+                Err(_) => return Err(warp::reject::custom(ConversionError)),
+            },
+            Err(_) => return Err(warp::reject::custom(ConversionError)),
+        };
+
+        // TODO : find a better method here
+        let mut to_add = "/remote.php/dav/public-calendars/".to_owned();
+        to_add.push_str(&k);
+
+        let mut to_replace = "/cals/".to_owned();
+        to_replace.push_str(&k);
+
+        let result = str::replace(&finalreq, &to_add, &to_replace.clone());
+
+        let to_split = result;
+        let splitted = to_split.split("<d:response>");
+        let vec: Vec<&str> = splitted.collect();
+
+        let intermediate = vec[1];
+        let finished = intermediate.split("</d:response>");
+        let vec2: Vec<&str> = finished.collect();
+        let end = vec2[0];
+
+        let mut response = "<d:response>".to_owned();
+        response.push_str(end);
+        response.push_str("</d:response>");
+
+        body.push_str(&response);
     }
 
     body.push_str("</d:multistatus>");
 
+    let re = Regex::new(r"<d:owner>(.*?)</d:owner>").unwrap();
+    let before_regex = body.as_str();
+
+    let response = re.replace_all(before_regex, "<d:owner>/principals/mock</d:owner>");
+
     return Ok(Response::builder()
         .header("Content-Type", "application/xml; charset=utf-8")
-        .body(body));
+        .body(response));
 }

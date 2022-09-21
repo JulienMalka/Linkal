@@ -21,6 +21,7 @@ pub fn get_calendars(
     calendars: HashMap<String, Calendar>,
 ) -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
     warp::path!("cals")
+        .and(warp::body::bytes())
         .and(with_cals(calendars))
         .and_then(handlers::handle_cals)
 }
