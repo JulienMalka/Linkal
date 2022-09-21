@@ -1,0 +1,22 @@
+---
+kind: pipeline
+type: exec
+name: Build package
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+
+- name: Build Linkal 
+  commands:
+    - nix --experimental-features "nix-command flakes" build github:JulienMalka/Linkal
+
+
+trigger:
+  branch:
+  - main
+  event:
+  - push
+  - pull_request
