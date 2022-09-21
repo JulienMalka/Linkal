@@ -22,7 +22,9 @@ pub fn get_calendars(
 ) -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
     warp::path!("cals")
         .and(warp::body::bytes())
+        .and(warp::method())
         .and(with_cals(calendars))
+        .and(warp::header::<u32>("Depth"))
         .and_then(handlers::handle_cals)
 }
 
@@ -37,6 +39,7 @@ pub fn get_events(
         .and(warp::body::bytes())
         .and(warp::method())
         .and(with_cals(calendars))
+        .and(warp::header::optional::<u32>("Depth"))
         .and_then(handlers::handle_events)
 }
 

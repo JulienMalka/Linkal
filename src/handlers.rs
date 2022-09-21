@@ -2,6 +2,7 @@ use crate::Calendar;
 use crate::ConversionError;
 use crate::OtherError;
 use bytes::Bytes;
+use exile;
 use http::Method;
 use http::StatusCode;
 use regex::Regex;
@@ -12,6 +13,13 @@ use warp::http::Response;
 use warp::http::Uri;
 use warp::Rejection;
 
+pub fn parse_propfind(request: &str) -> Vec<&exile::Element> {
+    let tree = exile::parse(request).unwrap();
+    let root = tree.root();
+    let children: Vec<&exile::Element> = root.children().collect();
+    return children;
+}
+
 pub async fn handle_index() -> Result<impl warp::Reply, Infallible> {
     return Ok(Response::builder()
             .header("Content-Type", "application/xml; charset=utf-8")
@@ -19,9 +27,16 @@ pub async fn handle_index() -> Result<impl warp::Reply, Infallible> {
             .body(r#"<?xml version="1.0"?>
 <d:multistatus xmlns:d="DAV:" xmlns:s="http://sabredav.org/ns" xmlns:oc="http://owncloud.org/ns" xmlns:nc="http://nextcloud.org/ns">
     <d:response>
-        <d:href>/remote.php/dav/</d:href>
+        <d:href>/</d:href>
         <d:propstat>
             <d:prop>
+<d:principal-URL>
+                    <d:href>/principals/mock/</d:href>
+                </d:principal-URL>
+                <d:displayname>Julien</d:displayname>
+                <cs:email-address-set>
+                    <cs:email-address>julien@malka.sh</cs:email-address>
+                </cs:email-address-set>
                 <d:resourcetype>
                     <d:collection/>
                 </d:resourcetype>
@@ -96,6 +111,52 @@ pub async fn handle_home_url() -> Result<impl warp::Reply, Infallible> {
                 <cal:calendar-home-set>
                     <d:href>/cals/</d:href>
                 </cal:calendar-home-set>
+            <cal:calendar-user-address-set>
+                    <d:href>mailto:hello@linkal.fr</d:href>
+                    <d:href>/principals/mock/</d:href>
+                </cal:calendar-user-address-set>
+            <d:current-user-principal>
+                    <d:href>/principals/mock/</d:href>
+                </d:current-user-principal>
+                <d:displayname>Linkal</d:displayname>
+                <cs:email-address-set>
+                    <cs:email-address>hello@linkal.fr</cs:email-address>
+                </cs:email-address-set>
+            <d:principal-URL>
+                    <d:href>/principals/mock/</d:href>
+                </d:principal-URL>
+            <d:supported-report-set>
+                    <d:supported-report>
+                        <d:report>
+                            <d:expand-property/>
+                        </d:report>
+                    </d:supported-report>
+                    <d:supported-report>
+                        <d:report>
+                            <d:principal-match/>
+                        </d:report>
+                    </d:supported-report>
+                    <d:supported-report>
+                        <d:report>
+                            <d:principal-property-search/>
+                        </d:report>
+                    </d:supported-report>
+                    <d:supported-report>
+                        <d:report>
+                            <d:principal-search-property-set/>
+                        </d:report>
+                    </d:supported-report>
+                    <d:supported-report>
+                        <d:report>
+                            <oc:filter-comments/>
+                        </d:report>
+                    </d:supported-report>
+                    <d:supported-report>
+                        <d:report>
+                            <oc:filter-files/>
+                        </d:report>
+                    </d:supported-report>
+                </d:supported-report-set>
             </d:prop>
             <d:status>HTTP/1.1 200 OK</d:status>
         </d:propstat>
@@ -119,11 +180,12 @@ pub async fn handle_events(
     req_body: Bytes,
     method: Method,
     calendars: HashMap<String, Calendar>,
+    depth: Option<u32>,
 ) -> Result<impl warp::Reply, Rejection> {
     let client = ureq::Agent::new();
     let content = client
         .request(method.as_str(), &calendars[&path].url)
-        .set("Depth", "1")
+        .set("Depth", &depth.unwrap_or(0).to_string())
         .set("Content-Type", "application/xml")
         .send_bytes(req_body.as_ref());
 
@@ -153,9 +215,31 @@ pub async fn handle_events(
 
 pub async fn handle_cals(
     req_body: Bytes,
+    method: Method,
     calendars: HashMap<String, Calendar>,
+    depth: u32,
 ) -> Result<impl warp::Reply, Rejection> {
     let client = ureq::Agent::new();
+
+    if method.clone().as_str().eq("PROPPATCH") {
+        return Ok(Response::builder()
+            .header("Content-Type", "application/xml; charset=utf-8")
+            .status(StatusCode::from_u16(207).unwrap())
+            .body(r#"
+            <?xml version="1.0"?>
+            <d:multistatus xmlns:d="DAV:" xmlns:s="http://sabredav.org/ns" xmlns:cal="urn:ietf:params:xml:ns:caldav" xmlns:cs="http://calendarserver.org/ns/" xmlns:oc="http://owncloud.org/ns" xmlns:nc="http://nextcloud.org/ns">
+                <d:response>
+                    <d:href>/cals/</d:href>
+                    <d:propstat>
+                        <d:prop>
+                            <cal:default-alarm-vevent-date/>
+                        </d:prop>
+                        <d:status>HTTP/1.1 200 OK</d:status>
+                    </d:propstat>
+                </d:response>
+            </d:multistatus>
+            "#.to_owned()));
+    }
 
     let mut body = r#"<?xml version="1.0"?>
                 <d:multistatus xmlns:d="DAV:" xmlns:s="http://sabredav.org/ns" xmlns:cal="urn:ietf:params:xml:ns:caldav" xmlns:cs="http://calendarserver.org/ns/" xmlns:oc="http://owncloud.org/ns" xmlns:nc="http://nextcloud.org/ns">
@@ -181,8 +265,8 @@ pub async fn handle_cals(
     // TODO : make this async
     for (k, v) in calendars {
         let content = client
-            .request("PROPFIND", &v.url)
-            .set("Depth", "1")
+            .request(method.as_str(), &v.url)
+            .set("Depth", &depth.to_string())
             .set("Content-Type", "application/xml")
             .send_bytes(req_body.as_ref());
 
@@ -225,16 +309,16 @@ pub async fn handle_cals(
     let before_regex = body.as_str();
 
     let response = re.replace_all(before_regex, "<d:owner>/principals/mock</d:owner>");
-    let response2 = response.into_owned();
+    let response2 = response;
     let re = Regex::new(r"<cs:publish-url>(.*?)</cs:publish-url>").unwrap();
     let response4 = re.replace_all(
         &response2,
         "<cs:publish-url><d:href>http://127.0.0.1/cals/LLWm8qK9iC5YGrrR</d:href></cs:publish-url>",
     );
-    let response5 = response4.into_owned();
+    let test = response4.into_owned();
 
     return Ok(Response::builder()
         .header("Content-Type", "application/xml; charset=utf-8")
         .status(StatusCode::from_u16(207).unwrap())
-        .body(response5));
+        .body(test));
 }
