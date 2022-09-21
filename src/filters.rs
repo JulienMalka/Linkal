@@ -26,6 +26,10 @@ pub fn get_calendars(
         .and_then(handlers::handle_cals)
 }
 
+pub fn well_known() -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
+    warp::path!(".well-known" / "caldav").and_then(handlers::handle_well_known)
+}
+
 pub fn get_events(
     calendars: HashMap<String, Calendar>,
 ) -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
@@ -41,4 +45,5 @@ pub fn api(
         .or(get_home_url())
         .or(get_calendars(calendars.clone()))
         .or(get_events(calendars.clone()))
+        .or(well_known())
 }
