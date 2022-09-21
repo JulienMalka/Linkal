@@ -2,6 +2,7 @@ use crate::Calendar;
 use crate::ConversionError;
 use crate::OtherError;
 use bytes::Bytes;
+use http::Method;
 use http::StatusCode;
 use regex::Regex;
 use std::collections::HashMap;
@@ -113,30 +114,18 @@ pub async fn handle_home_url() -> Result<impl warp::Reply, Infallible> {
 </d:multistatus>"#));
 }
 
-pub static CALENDAR_EVENTS_REQUEST: &str = r#"
-    <c:calendar-query xmlns:d="DAV:" xmlns:c="urn:ietf:params:xml:ns:caldav">
-        <d:prop>
-            <d:getetag />
-            <c:calendar-data />
-        </d:prop>
-        <c:filter>
-            <c:comp-filter name="VCALENDAR">
-                <c:comp-filter name="VEVENT" />
-            </c:comp-filter>
-        </c:filter>
-    </c:calendar-query>
-"#;
-
 pub async fn handle_events(
     path: String,
+    req_body: Bytes,
+    method: Method,
     calendars: HashMap<String, Calendar>,
 ) -> Result<impl warp::Reply, Rejection> {
     let client = ureq::Agent::new();
     let content = client
-        .request("REPORT", &calendars[&path].url)
+        .request(method.as_str(), &calendars[&path].url)
         .set("Depth", "1")
         .set("Content-Type", "application/xml")
-        .send_bytes(CALENDAR_EVENTS_REQUEST.as_bytes());
+        .send_bytes(req_body.as_ref());
 
     let response = match content {
         Ok(s) => match s.into_string() {
@@ -193,7 +182,7 @@ pub async fn handle_cals(
     for (k, v) in calendars {
         let content = client
             .request("PROPFIND", &v.url)
-            .set("Depth", "0")
+            .set("Depth", "1")
             .set("Content-Type", "application/xml")
             .send_bytes(req_body.as_ref());
 

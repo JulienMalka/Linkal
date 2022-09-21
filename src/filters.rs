@@ -34,6 +34,8 @@ pub fn get_events(
     calendars: HashMap<String, Calendar>,
 ) -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
     warp::path!("cals" / String)
+        .and(warp::body::bytes())
+        .and(warp::method())
         .and(with_cals(calendars))
         .and_then(handlers::handle_events)
 }
