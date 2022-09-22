@@ -13,13 +13,6 @@ use warp::http::Response;
 use warp::http::Uri;
 use warp::Rejection;
 
-pub fn parse_propfind(request: &str) -> Vec<&exile::Element> {
-    let tree = exile::parse(request).unwrap();
-    let root = tree.root();
-    let children: Vec<&exile::Element> = root.children().collect();
-    return children;
-}
-
 pub async fn handle_index() -> Result<impl warp::Reply, Infallible> {
     return Ok(Response::builder()
             .header("Content-Type", "application/xml; charset=utf-8")
