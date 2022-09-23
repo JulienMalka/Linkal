@@ -11,7 +11,7 @@ steps:
 
 - name: Build Linkal 
   commands:
-    - nix --experimental-features "nix-command flakes" build github:JulienMalka/Linkal
+    - nix --experimental-features "nix-command flakes"
 
 
 trigger:
