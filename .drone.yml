@@ -11,7 +11,7 @@ steps:
 
 - name: Build Linkal 
   commands:
-    - nix --experimental-features "nix-command flakes"
+    - nix --experimental-features "nix-command flakes" build
 
 
 trigger:
