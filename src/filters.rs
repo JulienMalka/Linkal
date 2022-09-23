@@ -10,7 +10,9 @@ fn with_cals(
 }
 
 pub fn index() -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
-    warp::path::end().and_then(handlers::handle_index)
+    warp::path::end()
+        .and(warp::body::bytes())
+        .and_then(handlers::handle_index)
 }
 
 pub fn get_home_url() -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {

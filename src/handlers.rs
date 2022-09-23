@@ -1,3 +1,4 @@
+use crate::propfind;
 use crate::Calendar;
 use crate::ConversionError;
 use crate::OtherError;
@@ -8,80 +9,27 @@ use http::StatusCode;
 use regex::Regex;
 use std::collections::HashMap;
 use std::convert::Infallible;
+use std::str;
 use ureq;
 use warp::http::Response;
 use warp::http::Uri;
 use warp::Rejection;
 
-pub async fn handle_index() -> Result<impl warp::Reply, Infallible> {
+pub async fn handle_index(req_body: Bytes) -> Result<impl warp::Reply, Rejection> {
+    let req_str = str::from_utf8(req_body.as_ref());
+    dbg!(req_str.clone());
+
+    let test = match req_str {
+        Ok(s) => s,
+        Err(_) => return Err(warp::reject::custom(ConversionError)),
+    };
+
+    let hello = propfind::parse_propfind(test);
+
     return Ok(Response::builder()
-            .header("Content-Type", "application/xml; charset=utf-8")
-            .status(StatusCode::from_u16(207).unwrap())
-            .body(r#"<?xml version="1.0"?>
-<d:multistatus xmlns:d="DAV:" xmlns:s="http://sabredav.org/ns" xmlns:oc="http://owncloud.org/ns" xmlns:nc="http://nextcloud.org/ns">
-    <d:response>
-        <d:href>/</d:href>
-        <d:propstat>
-            <d:prop>
-<d:principal-URL>
-                    <d:href>/principals/mock/</d:href>
-                </d:principal-URL>
-                <d:displayname>Julien</d:displayname>
-                <cs:email-address-set>
-                    <cs:email-address>julien@malka.sh</cs:email-address>
-                </cs:email-address-set>
-                <d:resourcetype>
-                    <d:collection/>
-                </d:resourcetype>
-                <d:current-user-principal>
-                    <d:href>/principals/mock</d:href>
-                </d:current-user-principal>
-                <d:current-user-privilege-set>
-                    <d:privilege>
-                        <d:all/>
-                    </d:privilege>
-                    <d:privilege>
-                        <d:read/>
-                    </d:privilege>
-                    <d:privilege>
-                        <d:write/>
-                    </d:privilege>
-                    <d:privilege>
-                        <d:write-properties/>
-                    </d:privilege>
-                    <d:privilege>
-                        <d:write-content/>
-                    </d:privilege>
-                    <d:privilege>
-                        <d:unlock/>
-                    </d:privilege>
-                    <d:privilege>
-                        <d:bind/>
-                    </d:privilege>
-                    <d:privilege>
-                        <d:unbind/>
-                    </d:privilege>
-                    <d:privilege>
-                        <d:read-acl/>
-                    </d:privilege>
-                    <d:privilege>
-                        <d:read-current-user-privilege-set/>
-                    </d:privilege>
-                </d:current-user-privilege-set>
-            </d:prop>
-            <d:status>HTTP/1.1 200 OK</d:status>
-        </d:propstat>
-        <d:propstat>
-            <d:prop>
-                <d:owner/>
-                <d:displayname/>
-                <x1:calendar-color xmlns:x1="http://apple.com/ns/ical/"/>
-                <x2:calendar-home-set xmlns:x2="urn:ietf:params:xml:ns:caldav"/>
-            </d:prop>
-            <d:status>HTTP/1.1 404 Not Found</d:status>
-        </d:propstat>
-    </d:response>
-</d:multistatus>"#));
+        .header("Content-Type", "application/xml; charset=utf-8")
+        .status(StatusCode::from_u16(207).unwrap())
+        .body(propfind::generate_response(hello)));
 }
 
 pub async fn handle_well_known() -> Result<impl warp::Reply, Infallible> {
