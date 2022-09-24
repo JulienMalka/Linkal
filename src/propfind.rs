@@ -8,6 +8,11 @@ static PROPS: phf::Map<&'static str, &str> = phf_map! {
     "current-user-principal" => "<d:current-user-principal><d:href>/principals/mock/</d:href></d:current-user-principal>",
     "email-address-set" => "<cs:email-address-set><cs:email-address>hello@linkal.fr</cs:email-address></cs:email-address-set>",
    "supported-report-set" => "<d:supported-report-set><d:supported-report><d:report><d:expand-property/></d:report></d:supported-report><d:supported-report><d:report><d:principal-match/></d:report></d:supported-report><d:supported-report><d:report><d:principal-property-search/></d:report></d:supported-report><d:supported-report><d:report><d:principal-search-property-set/></d:report></d:supported-report><d:supported-report><d:report><oc:filter-comments/></d:report></d:supported-report><d:supported-report><d:report><oc:filter-files/></d:report></d:supported-report></d:supported-report-set>",
+    "calendar-user-address-set" => r#"<cal:calendar-user-address-set>
+                    <d:href>mailto:julien@malka.sh</d:href>
+                    <d:href>/remote.php/dav/principals/users/Julien/</d:href>
+                    </cal:calendar-user-address-set>"#,
+
 };
 
 pub fn parse_propfind(request: &str) -> Vec<String> {
@@ -22,7 +27,12 @@ pub fn parse_propfind(request: &str) -> Vec<String> {
     };
 
     for field in fields {
-        result.push(field.name().to_string());
+        let name = field.name();
+        if PROPS.contains_key(name) {
+            result.push(name.to_string());
+        } else {
+            result.push(field.fullname().to_string());
+        }
     }
     return result;
 }
@@ -37,27 +47,49 @@ pub fn generate_response(props: Vec<String>, path: &str) -> String {
         <d:propstat>
             <d:prop>"#;
 
-    let template_end: String = r#"</d:prop>
-            <d:status>HTTP/1.1 200 OK</d:status>
-        </d:propstat>
-    </d:response>
-    </d:multistatus>
-    "#
-    .to_string();
+    let template_start_fail = r#"<d:propstat>
+            <d:prop>"#;
 
-    let props_res = props
+    let template_end_ok = r#"</d:prop>
+            <d:status>HTTP/1.1 200 OK</d:status>
+        </d:propstat>"#;
+    let template_end_fail = r#"</d:prop>
+            <d:status>HTTP/1.1 404 Not Found</d:status>
+        </d:propstat>
+        </d:response>
+    </d:multistatus>"#;
+
+    let props_first = props.clone();
+
+    let props_res = props_first
         .into_iter()
         .map(|prop| match PROPS.get(&prop) {
             Some(response) => response,
             None => "",
         })
-        .rev()
         .collect::<Vec<&str>>()
+        .join("");
+
+    let props_res_2 = props
+        .into_iter()
+        .map(|prop| match PROPS.get(&prop) {
+            Some(_) => "".to_owned(),
+            None => {
+                let mut res = "<".to_owned();
+                res.push_str(&prop.to_string());
+                res.push_str("/>");
+                res
+            }
+        })
+        .collect::<Vec<String>>()
         .join("");
 
     template_start.push_str(path);
     template_start.push_str(template_middle);
     template_start.push_str(&props_res);
-    template_start.push_str(&template_end);
+    template_start.push_str(&template_end_ok);
+    template_start.push_str(&template_start_fail);
+    template_start.push_str(&props_res_2);
+    template_start.push_str(&template_end_fail);
     template_start
 }
