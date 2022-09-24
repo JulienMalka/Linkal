@@ -37,11 +37,21 @@ pub fn get_calendars(
     calendars: HashMap<String, Calendar>,
 ) -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
     warp::path!("cals")
-        .and(warp::body::bytes())
         .and(warp::method())
         .and(with_cals(calendars))
         .and(warp::header::<u32>("Depth"))
+        .and(warp::body::bytes())
         .and_then(handlers::handle_cals)
+}
+
+pub fn get_calendars_proppatch(
+    calendars: HashMap<String, Calendar>,
+) -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
+    warp::path!("cals")
+        .and(warp::body::bytes())
+        .and(warp::method())
+        .and(with_cals(calendars))
+        .and_then(handlers::handle_cals_proppatch)
 }
 
 pub fn well_known() -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
@@ -67,6 +77,7 @@ pub fn api(
         .or(index())
         .or(get_home_url())
         .or(get_calendars(calendars.clone()))
+        .or(get_calendars_proppatch(calendars.clone()))
         .or(get_events(calendars.clone()))
         .or(well_known())
 }
