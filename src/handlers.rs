@@ -82,18 +82,27 @@ pub async fn handle_events(
 ) -> Result<impl warp::Reply, Rejection> {
     let client = ureq::Agent::new();
     let cal_url = &calendars[&path].url;
+    let body = req_body;
+    let re = Regex::new(r"cals").unwrap();
+    let newbody = re
+        .replace_all(
+            str::from_utf8(&body).unwrap(),
+            "remote.php/dav/public-calendars",
+        )
+        .into_owned();
+
     let content = client
         .request(method.as_str(), &cal_url)
         .set("Depth", &depth.unwrap_or(0).to_string())
         .set("Content-Type", "application/xml")
-        .send_bytes(req_body.as_ref());
+        .send_bytes(newbody.as_bytes());
 
     let response = match content {
         Ok(s) => match s.into_string() {
             Ok(s) => s,
             Err(_) => return Err(warp::reject::custom(ConversionError)),
         },
-        Err(_) => return Err(warp::reject::custom(ConversionError)),
+        Err(_) => return Err(warp::reject::custom(OtherError)),
     };
 
     let end_url = &cal_url.split("/").collect::<Vec<&str>>()[3..];
@@ -107,7 +116,6 @@ pub async fn handle_events(
         "<cs:publish-url><d:href>http://127.0.0.1/cals/LLWm8qK9iC5YGrrR</d:href></cs:publish-url>",
     );
     let response5 = response4.into_owned();
-    dbg!(end_url.clone());
 
     let re = Regex::new(&end_url).unwrap();
     let response6 = re
