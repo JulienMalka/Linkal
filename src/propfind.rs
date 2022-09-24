@@ -39,7 +39,7 @@ pub fn parse_propfind(request: &str) -> Vec<String> {
 
 pub fn generate_response(props: Vec<String>, path: &str) -> String {
     let mut template_start: String = r#"<?xml version="1.0"?>
-    <d:multistatus xmlns:d="DAV:" xmlns:s="http://sabredav.org/ns" xmlns:oc="http://owncloud.org/ns" xmlns:nc="http://nextcloud.org/ns">
+    <d:multistatus xmlns:d="DAV:" xmlns:s="http://sabredav.org/ns" xmlns:oc="http://owncloud.org/ns" xmlns:nc="http://nextcloud.org/ns" xmlns:cal="urn:ietf:params:xml:ns:caldav">
     <d:response>
         <d:href>"#.to_owned();
 
@@ -57,6 +57,9 @@ pub fn generate_response(props: Vec<String>, path: &str) -> String {
             <d:status>HTTP/1.1 404 Not Found</d:status>
         </d:propstat>
         </d:response>
+    </d:multistatus>"#;
+
+    let template_ok_finish = r#"</d:response>
     </d:multistatus>"#;
 
     let props_first = props.clone();
@@ -88,8 +91,12 @@ pub fn generate_response(props: Vec<String>, path: &str) -> String {
     template_start.push_str(template_middle);
     template_start.push_str(&props_res);
     template_start.push_str(&template_end_ok);
-    template_start.push_str(&template_start_fail);
-    template_start.push_str(&props_res_2);
-    template_start.push_str(&template_end_fail);
+    if props_res_2 != "" {
+        template_start.push_str(&template_start_fail);
+        template_start.push_str(&props_res_2);
+        template_start.push_str(&template_end_fail);
+    } else {
+        template_start.push_str(&template_ok_finish);
+    }
     template_start
 }

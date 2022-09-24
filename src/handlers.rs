@@ -46,7 +46,7 @@ pub async fn handle_home_url(req_body: Bytes) -> Result<impl warp::Reply, Reject
     return Ok(Response::builder()
         .header("Content-Type", "application/xml; charset=utf-8")
         .status(StatusCode::from_u16(207).unwrap())
-        .body(propfind::generate_response(hello, "/principals/mock")));
+        .body(propfind::generate_response(hello, "/principals/mock/")));
 }
 
 pub async fn handle_options() -> Result<impl warp::Reply, Infallible> {
