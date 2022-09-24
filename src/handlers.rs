@@ -213,7 +213,15 @@ pub async fn handle_cals(
         &response2,
         "<cs:publish-url><d:href>http://127.0.0.1/cals/LLWm8qK9iC5YGrrR</d:href></cs:publish-url>",
     );
+
     let test = response4.into_owned();
+
+    let re = Regex::new(r"<oc:owner-principal>(.*?)</oc:owner-principal>").unwrap();
+    let response5 = re.replace_all(
+        &test,
+        "<oc:owner-principal>/principals/mock/</oc:owner-principal>",
+    );
+    let test = response5.into_owned();
 
     return Ok(Response::builder()
         .header("Content-Type", "application/xml; charset=utf-8")
