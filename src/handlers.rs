@@ -17,8 +17,6 @@ use warp::Rejection;
 
 pub async fn handle_index(req_body: Bytes) -> Result<impl warp::Reply, Rejection> {
     let req_str = str::from_utf8(req_body.as_ref());
-    dbg!(req_str.clone());
-
     let test = match req_str {
         Ok(s) => s,
         Err(_) => return Err(warp::reject::custom(ConversionError)),
@@ -29,91 +27,50 @@ pub async fn handle_index(req_body: Bytes) -> Result<impl warp::Reply, Rejection
     return Ok(Response::builder()
         .header("Content-Type", "application/xml; charset=utf-8")
         .status(StatusCode::from_u16(207).unwrap())
-        .body(propfind::generate_response(hello)));
+        .body(propfind::generate_response(hello, "/")));
 }
 
 pub async fn handle_well_known() -> Result<impl warp::Reply, Infallible> {
     return Ok(warp::redirect(Uri::from_static("/")));
 }
 
-pub async fn handle_home_url() -> Result<impl warp::Reply, Infallible> {
+pub async fn handle_home_url(req_body: Bytes) -> Result<impl warp::Reply, Rejection> {
+    let req_str = str::from_utf8(req_body.as_ref());
+    let test = match req_str {
+        Ok(s) => s,
+        Err(_) => return Err(warp::reject::custom(ConversionError)),
+    };
+
+    let hello = propfind::parse_propfind(test);
+
     return Ok(Response::builder()
-            .header("Content-Type", "application/xml; charset=utf-8")
-            .status(StatusCode::from_u16(207).unwrap())
-            .body(r#"<?xml version="1.0"?>
-<d:multistatus xmlns:d="DAV:" xmlns:s="http://sabredav.org/ns" xmlns:cal="urn:ietf:params:xml:ns:caldav" xmlns:cs="http://calendarserver.org/ns/" xmlns:card="urn:ietf:params:xml:ns:carddav" xmlns:oc="http://owncloud.org/ns" xmlns:nc="http://nextcloud.org/ns">
-    <d:response>
-        <d:href>/principals/mock/</d:href>
-        <d:propstat>
-            <d:prop>
-        <d:resourcetype>
-                    <d:principal/>
-                </d:resourcetype>
-                <cal:calendar-home-set>
-                    <d:href>/cals/</d:href>
-                </cal:calendar-home-set>
-            <cal:calendar-user-address-set>
-                    <d:href>mailto:hello@linkal.fr</d:href>
-                    <d:href>/principals/mock/</d:href>
-                </cal:calendar-user-address-set>
-            <d:current-user-principal>
-                    <d:href>/principals/mock/</d:href>
-                </d:current-user-principal>
-                <d:displayname>Linkal</d:displayname>
-                <cs:email-address-set>
-                    <cs:email-address>hello@linkal.fr</cs:email-address>
-                </cs:email-address-set>
-            <d:principal-URL>
-                    <d:href>/principals/mock/</d:href>
-                </d:principal-URL>
-            <d:supported-report-set>
-                    <d:supported-report>
-                        <d:report>
-                            <d:expand-property/>
-                        </d:report>
-                    </d:supported-report>
-                    <d:supported-report>
-                        <d:report>
-                            <d:principal-match/>
-                        </d:report>
-                    </d:supported-report>
-                    <d:supported-report>
-                        <d:report>
-                            <d:principal-property-search/>
-                        </d:report>
-                    </d:supported-report>
-                    <d:supported-report>
-                        <d:report>
-                            <d:principal-search-property-set/>
-                        </d:report>
-                    </d:supported-report>
-                    <d:supported-report>
-                        <d:report>
-                            <oc:filter-comments/>
-                        </d:report>
-                    </d:supported-report>
-                    <d:supported-report>
-                        <d:report>
-                            <oc:filter-files/>
-                        </d:report>
-                    </d:supported-report>
-                </d:supported-report-set>
-            </d:prop>
-            <d:status>HTTP/1.1 200 OK</d:status>
-        </d:propstat>
-    </d:response>
-    <d:response>
-        <d:href>/principals/mock/calendar-proxy-read/</d:href>
-        <d:propstat>
-            <d:prop>
-                <cal:calendar-home-set>
-                    <d:href>/cals/</d:href>
-                </cal:calendar-home-set>
-            </d:prop>
-            <d:status>HTTP/1.1 200 OK</d:status>
-        </d:propstat>
-    </d:response>
-</d:multistatus>"#));
+        .header("Content-Type", "application/xml; charset=utf-8")
+        .status(StatusCode::from_u16(207).unwrap())
+        .body(propfind::generate_response(hello, "/principals/mock")));
+}
+
+pub async fn handle_options() -> Result<impl warp::Reply, Infallible> {
+    return Ok(Response::builder()
+        .status(StatusCode::from_u16(207).unwrap())
+        .header("Content-Type", "text/html; charset=UTF-8")
+        .header("DAV", "1, extended-mkcol, access-control")
+        .header(
+            "ALLOW",
+            "OPTIONS, GET, HEAD, DELETE, PROPFIND, PUT, PROPPATCH, COPY, MOVE, REPORT",
+        )
+        .body(""));
+}
+
+pub async fn handle_options_cals() -> Result<impl warp::Reply, Infallible> {
+    return Ok(Response::builder()
+        .status(StatusCode::from_u16(207).unwrap())
+        .header("Content-Type", "text/html; charset=UTF-8")
+        .header("DAV", "1, extended-mkcol, access-control, calendar-access")
+        .header(
+            "ALLOW",
+            "OPTIONS, GET, HEAD, DELETE, PROPFIND, PUT, PROPPATCH, COPY, MOVE, REPORT",
+        )
+        .body(""));
 }
 
 pub async fn handle_events(
