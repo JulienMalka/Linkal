@@ -120,8 +120,7 @@ pub fn api(
     calendars: HashMap<String, Calendar>,
 ) -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
     allowed_method().and(
-        get_home_url()
-            .or(options_request_cals())
+        options_request_cals()
             .or(options_request())
             .or(index())
             .or(get_home_url())
