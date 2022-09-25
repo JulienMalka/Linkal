@@ -27,7 +27,7 @@ pub async fn handle_index(req_body: Bytes) -> Result<impl warp::Reply, Rejection
     return Ok(Response::builder()
         .header("Content-Type", "application/xml; charset=utf-8")
         .status(StatusCode::from_u16(207).unwrap())
-        .body(propfind::generate_response(hello, "/")));
+        .body(propfind::generate_response(hello, "/", true)));
 }
 
 pub async fn handle_well_known() -> Result<impl warp::Reply, Infallible> {
@@ -46,7 +46,11 @@ pub async fn handle_home_url(req_body: Bytes) -> Result<impl warp::Reply, Reject
     return Ok(Response::builder()
         .header("Content-Type", "application/xml; charset=utf-8")
         .status(StatusCode::from_u16(207).unwrap())
-        .body(propfind::generate_response(hello, "/principals/mock/")));
+        .body(propfind::generate_response(
+            hello,
+            "/principals/mock/",
+            true,
+        )));
 }
 
 pub async fn handle_options() -> Result<impl warp::Reply, Infallible> {
@@ -81,20 +85,32 @@ pub async fn handle_events(
     depth: Option<u32>,
 ) -> Result<impl warp::Reply, Rejection> {
     let client = ureq::Agent::new();
+    let cal_url = &calendars[&path].url;
+    let body = req_body;
+    let re = Regex::new(r"cals").unwrap();
+    let newbody = re
+        .replace_all(
+            str::from_utf8(&body).unwrap(),
+            "remote.php/dav/public-calendars",
+        )
+        .into_owned();
+
     let content = client
-        .request(method.as_str(), &calendars[&path].url)
+        .request(method.as_str(), &cal_url)
         .set("Depth", &depth.unwrap_or(0).to_string())
         .set("Content-Type", "application/xml")
-        .send_bytes(req_body.as_ref());
+        .send_bytes(newbody.as_bytes());
 
     let response = match content {
         Ok(s) => match s.into_string() {
             Ok(s) => s,
             Err(_) => return Err(warp::reject::custom(ConversionError)),
         },
-        Err(_) => return Err(warp::reject::custom(ConversionError)),
+        Err(_) => return Err(warp::reject::custom(OtherError)),
     };
 
+    let end_url = &cal_url.split("/").collect::<Vec<&str>>()[3..];
+    let end_url = end_url.join("/");
     let re = Regex::new(r"<d:owner>(.*?)</d:owner>").unwrap();
     let response2 = re.replace_all(&response, "<d:owner>/principals/mock</d:owner>");
     let response3 = response2.into_owned();
@@ -105,10 +121,22 @@ pub async fn handle_events(
     );
     let response5 = response4.into_owned();
 
+    let re = Regex::new(&end_url).unwrap();
+    let response6 = re
+        .replace_all(&response5, format!("cals/{}", path))
+        .into_owned();
+
+    let re = Regex::new(r"<oc:owner-principal>(.*?)</oc:owner-principal>").unwrap();
+    let response7 = re.replace_all(
+        &response6,
+        "<oc:owner-principal>/principals/mock/</oc:owner-principal>",
+    );
+    let test = response7.into_owned();
+
     return Ok(Response::builder()
         .status(StatusCode::from_u16(207).unwrap())
         .header("Content-Type", "application/xml; charset=utf-8")
-        .body(response5));
+        .body(test));
 }
 
 pub async fn handle_cals(
@@ -213,7 +241,15 @@ pub async fn handle_cals(
         &response2,
         "<cs:publish-url><d:href>http://127.0.0.1/cals/LLWm8qK9iC5YGrrR</d:href></cs:publish-url>",
     );
+
     let test = response4.into_owned();
+
+    let re = Regex::new(r"<oc:owner-principal>(.*?)</oc:owner-principal>").unwrap();
+    let response5 = re.replace_all(
+        &test,
+        "<oc:owner-principal>/principals/mock/</oc:owner-principal>",
+    );
+    let test = response5.into_owned();
 
     return Ok(Response::builder()
         .header("Content-Type", "application/xml; charset=utf-8")
