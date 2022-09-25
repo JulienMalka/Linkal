@@ -1,4 +1,3 @@
-use phf;
 use serde_json;
 use serde_json::{Map, Value};
 use std::fs;
@@ -7,6 +6,7 @@ mod filters;
 mod handlers;
 mod propfind;
 use std::collections::HashMap;
+mod utils;
 
 #[derive(Debug)]
 struct ConversionError;

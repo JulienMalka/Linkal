@@ -1,4 +1,5 @@
 use crate::handlers;
+use crate::utils::into_response;
 use crate::Calendar;
 use std::collections::HashMap;
 use warp::hyper::Method;
@@ -49,7 +50,8 @@ pub fn with_cals(
 pub fn index() -> impl Filter<Extract = impl warp::Reply, Error = Rejection> + Clone {
     warp::path::end()
         .and(warp::body::bytes())
-        .and_then(handlers::handle_index)
+        .then(move |b: bytes::Bytes| handlers::handle_propfind_locally(b, "/"))
+        .map(into_response)
 }
 
 pub fn allowed_method() -> impl Filter<Extract = (), Error = warp::Rejection> + Clone {
@@ -65,7 +67,8 @@ pub fn allowed_method() -> impl Filter<Extract = (), Error = warp::Rejection> + 
 pub fn get_home_url() -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
     warp::path!("principals" / "mock")
         .and(warp::body::bytes())
-        .and_then(handlers::handle_home_url)
+        .then(move |b: bytes::Bytes| handlers::handle_propfind_locally(b, "/principals/mock/"))
+        .map(into_response)
 }
 
 pub fn options_request() -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone

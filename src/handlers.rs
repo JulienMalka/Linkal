@@ -1,9 +1,9 @@
 use crate::propfind;
+use crate::utils::LinkalError;
 use crate::Calendar;
 use crate::ConversionError;
 use crate::OtherError;
 use bytes::Bytes;
-use exile;
 use http::Method;
 use http::StatusCode;
 use regex::Regex;
@@ -15,42 +15,20 @@ use warp::http::Response;
 use warp::http::Uri;
 use warp::Rejection;
 
-pub async fn handle_index(req_body: Bytes) -> Result<impl warp::Reply, Rejection> {
-    let req_str = str::from_utf8(req_body.as_ref());
-    let test = match req_str {
-        Ok(s) => s,
-        Err(_) => return Err(warp::reject::custom(ConversionError)),
-    };
-
-    let hello = propfind::parse_propfind(test);
-
+pub async fn handle_propfind_locally(
+    req_body: Bytes,
+    path: &str,
+) -> Result<impl warp::Reply, LinkalError> {
+    let request_body = str::from_utf8(req_body.as_ref())?;
+    let props_requested = propfind::parse_propfind(request_body);
     return Ok(Response::builder()
         .header("Content-Type", "application/xml; charset=utf-8")
         .status(StatusCode::from_u16(207).unwrap())
-        .body(propfind::generate_response(hello, "/", true)));
+        .body(propfind::generate_response(props_requested, &path, true)));
 }
 
 pub async fn handle_well_known() -> Result<impl warp::Reply, Infallible> {
     return Ok(warp::redirect(Uri::from_static("/")));
-}
-
-pub async fn handle_home_url(req_body: Bytes) -> Result<impl warp::Reply, Rejection> {
-    let req_str = str::from_utf8(req_body.as_ref());
-    let test = match req_str {
-        Ok(s) => s,
-        Err(_) => return Err(warp::reject::custom(ConversionError)),
-    };
-
-    let hello = propfind::parse_propfind(test);
-
-    return Ok(Response::builder()
-        .header("Content-Type", "application/xml; charset=utf-8")
-        .status(StatusCode::from_u16(207).unwrap())
-        .body(propfind::generate_response(
-            hello,
-            "/principals/mock/",
-            true,
-        )));
 }
 
 pub async fn handle_options() -> Result<impl warp::Reply, Infallible> {
