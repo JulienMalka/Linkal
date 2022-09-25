@@ -37,7 +37,7 @@ pub fn parse_propfind(request: &str) -> Vec<String> {
     return result;
 }
 
-pub fn generate_response(props: Vec<String>, path: &str) -> String {
+pub fn generate_response(props: Vec<String>, path: &str, principal: bool) -> String {
     let mut template_start: String = r#"<?xml version="1.0"?>
     <d:multistatus xmlns:d="DAV:" xmlns:s="http://sabredav.org/ns" xmlns:oc="http://owncloud.org/ns" xmlns:nc="http://nextcloud.org/ns" xmlns:cal="urn:ietf:params:xml:ns:caldav">
     <d:response>
@@ -64,7 +64,7 @@ pub fn generate_response(props: Vec<String>, path: &str) -> String {
 
     let props_first = props.clone();
 
-    let props_res = props_first
+    let mut props_res = props_first
         .into_iter()
         .map(|prop| match PROPS.get(&prop) {
             Some(response) => response,
@@ -86,6 +86,10 @@ pub fn generate_response(props: Vec<String>, path: &str) -> String {
         })
         .collect::<Vec<String>>()
         .join("");
+
+    if principal {
+        props_res.push_str("<d:resourcetype><d:collection/><d:principal/></d:resourcetype>");
+    }
 
     template_start.push_str(path);
     template_start.push_str(template_middle);
