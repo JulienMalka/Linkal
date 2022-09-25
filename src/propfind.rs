@@ -91,12 +91,12 @@ pub fn generate_response(props: Vec<String>, path: &str) -> String {
     template_start.push_str(template_middle);
     template_start.push_str(&props_res);
     template_start.push_str(&template_end_ok);
-    if props_res_2 != "" {
-        template_start.push_str(&template_start_fail);
-        template_start.push_str(&props_res_2);
-        template_start.push_str(&template_end_fail);
-    } else {
-        template_start.push_str(&template_ok_finish);
-    }
+    //    if props_res_2 != "" {
+    //        template_start.push_str(&template_start_fail);
+    //        template_start.push_str(&props_res_2);
+    //        template_start.push_str(&template_end_fail);
+    //   } else {
+    template_start.push_str(&template_ok_finish);
+    //    }
     template_start
 }
