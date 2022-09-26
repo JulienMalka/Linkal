@@ -1,5 +1,8 @@
+use bytes::Bytes;
 use exile::Node::Element;
 use phf::phf_map;
+use regex::Regex;
+use std::str;
 
 static PROPS: phf::Map<&'static str, &str> = phf_map! {
     "principal-URL" => "<d:principal-URL><d:href>/principals/mock/</d:href></d:principal-URL>",
@@ -35,6 +38,15 @@ pub fn parse_propfind(request: &str) -> Vec<String> {
         }
     }
     return result;
+}
+
+pub fn prepare_forwarded_body(body: &Bytes) -> String {
+    let re = Regex::new(r"cals").unwrap();
+    re.replace_all(
+        str::from_utf8(body).unwrap(),
+        "remote.php/dav/public-calendars",
+    )
+    .into_owned()
 }
 
 pub fn generate_response(props: Vec<String>, path: &str, principal: bool) -> String {

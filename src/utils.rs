@@ -37,6 +37,8 @@ use warp::Reply;
 pub enum LinkalError {
     Forbidden,
     ParsingError(Utf8Error),
+    UpstreamError(ureq::Error),
+    IOError(std::io::Error),
 }
 
 // Wrap DataFusion errors so that we can automagically return an
@@ -44,6 +46,18 @@ pub enum LinkalError {
 impl From<Utf8Error> for LinkalError {
     fn from(err: Utf8Error) -> Self {
         LinkalError::ParsingError(err)
+    }
+}
+
+impl From<ureq::Error> for LinkalError {
+    fn from(err: ureq::Error) -> Self {
+        LinkalError::UpstreamError(err)
+    }
+}
+
+impl From<std::io::Error> for LinkalError {
+    fn from(err: std::io::Error) -> Self {
+        LinkalError::IOError(err)
     }
 }
 
@@ -55,7 +69,8 @@ impl LinkalError {
             // here too (e.g. ResourcesExhaused) and potentially some that leak internal information
             // (e.g. ObjectStore?)
             LinkalError::ParsingError(_) => (StatusCode::BAD_REQUEST, "PARSING".to_string()),
-            // Mismatched hash
+            LinkalError::UpstreamError(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()),
+            LinkalError::IOError(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()), // Mismatched hash
         }
     }
 }

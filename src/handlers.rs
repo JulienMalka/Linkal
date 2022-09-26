@@ -1,4 +1,5 @@
 use crate::propfind;
+use crate::propfind::prepare_forwarded_body;
 use crate::utils::LinkalError;
 use crate::Calendar;
 use crate::ConversionError;
@@ -61,60 +62,42 @@ pub async fn handle_events(
     method: Method,
     calendars: HashMap<String, Calendar>,
     depth: Option<u32>,
-) -> Result<impl warp::Reply, Rejection> {
+) -> Result<impl warp::Reply, LinkalError> {
     let client = ureq::Agent::new();
-    let cal_url = &calendars[&path].url;
-    let body = req_body;
-    let re = Regex::new(r"cals").unwrap();
-    let newbody = re
-        .replace_all(
-            str::from_utf8(&body).unwrap(),
-            "remote.php/dav/public-calendars",
-        )
-        .into_owned();
-
-    let content = client
-        .request(method.as_str(), &cal_url)
+    let calendar_url = &calendars[&path].url;
+    // First we redirect the request to the upstream server
+    let response_upstream = client
+        .request(method.as_str(), &calendar_url)
         .set("Depth", &depth.unwrap_or(0).to_string())
         .set("Content-Type", "application/xml")
-        .send_bytes(newbody.as_bytes());
+        .send_bytes(prepare_forwarded_body(&req_body).as_bytes())?
+        .into_string()?;
 
-    let response = match content {
-        Ok(s) => match s.into_string() {
-            Ok(s) => s,
-            Err(_) => return Err(warp::reject::custom(ConversionError)),
-        },
-        Err(_) => return Err(warp::reject::custom(OtherError)),
-    };
+    // Then we have to highjack the response to make it look like we sent it
+    // Change the principal owner of the calendar
+    let regex_owner = Regex::new(r"<d:owner>(.*?)</d:owner>").unwrap();
+    let response =
+        regex_owner.replace_all(&response_upstream, "<d:owner>/principals/mock</d:owner>");
 
-    let end_url = &cal_url.split("/").collect::<Vec<&str>>()[3..];
-    let end_url = end_url.join("/");
-    let re = Regex::new(r"<d:owner>(.*?)</d:owner>").unwrap();
-    let response2 = re.replace_all(&response, "<d:owner>/principals/mock</d:owner>");
-    let response3 = response2.into_owned();
-    let re = Regex::new(r"<cs:publish-url>(.*?)</cs:publish-url>").unwrap();
-    let response4 = re.replace_all(
-        &response3,
-        "<cs:publish-url><d:href>http://127.0.0.1/cals/LLWm8qK9iC5YGrrR</d:href></cs:publish-url>",
-    );
-    let response5 = response4.into_owned();
-
-    let re = Regex::new(&end_url).unwrap();
-    let response6 = re
-        .replace_all(&response5, format!("cals/{}", path))
-        .into_owned();
-
-    let re = Regex::new(r"<oc:owner-principal>(.*?)</oc:owner-principal>").unwrap();
-    let response7 = re.replace_all(
-        &response6,
+    // Same here
+    let regex_owner_principal =
+        Regex::new(r"<oc:owner-principal>(.*?)</oc:owner-principal>").unwrap();
+    let response = regex_owner_principal.replace_all(
+        &response,
         "<oc:owner-principal>/principals/mock/</oc:owner-principal>",
     );
-    let test = response7.into_owned();
+
+    // Change the relative url of the calendar / events
+    let calendar_relative_url = &calendar_url.split("/").collect::<Vec<&str>>()[3..].join("/");
+    let regex_relative_url = Regex::new(&calendar_relative_url).unwrap();
+    let response = regex_relative_url
+        .replace_all(&response, format!("cals/{}", path))
+        .into_owned();
 
     return Ok(Response::builder()
         .status(StatusCode::from_u16(207).unwrap())
         .header("Content-Type", "application/xml; charset=utf-8")
-        .body(test));
+        .body(response));
 }
 
 pub async fn handle_cals(
