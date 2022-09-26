@@ -21,23 +21,17 @@ pub async fn handle_well_known() -> Result<impl warp::Reply, Infallible> {
     return Ok(warp::redirect(Uri::from_static("/")));
 }
 
-pub async fn handle_options() -> Result<impl warp::Reply, Infallible> {
-    return Ok(Response::builder()
-        .status(StatusCode::from_u16(207).unwrap())
-        .header("Content-Type", "text/html; charset=UTF-8")
-        .header("DAV", "1, extended-mkcol, access-control")
-        .header(
-            "ALLOW",
-            "OPTIONS, GET, HEAD, DELETE, PROPFIND, PUT, PROPPATCH, COPY, MOVE, REPORT",
-        )
-        .body(""));
-}
+pub async fn handle_options(calendar_access: bool) -> Result<impl warp::Reply, Infallible> {
+    let mut dav_header = "1, extended-mkcol, access-control".to_owned();
 
-pub async fn handle_options_cals() -> Result<impl warp::Reply, Infallible> {
+    if calendar_access {
+        dav_header.push_str(" calendar-access");
+    }
+
     return Ok(Response::builder()
         .status(StatusCode::from_u16(207).unwrap())
         .header("Content-Type", "text/html; charset=UTF-8")
-        .header("DAV", "1, extended-mkcol, access-control, calendar-access")
+        .header("DAV", dav_header)
         .header(
             "ALLOW",
             "OPTIONS, GET, HEAD, DELETE, PROPFIND, PUT, PROPPATCH, COPY, MOVE, REPORT",

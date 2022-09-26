@@ -9,11 +9,6 @@ impl reject::Reject for MethodError {}
 
 const PROPFIND_METHOD: &'static str = "PROPFIND";
 const REPORT_METHOD: &'static str = "REPORT";
-const PROPPATCH_METHOD: &'static str = "PROPPATCH";
-
-pub fn get_req() -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
-    warp::get().map(warp::reply)
-}
 
 fn method(name: &'static str) -> impl Filter<Extract = (), Error = Rejection> + Clone + Sized {
     warp::method()
@@ -27,12 +22,8 @@ fn method(name: &'static str) -> impl Filter<Extract = (), Error = Rejection> + 
         .untuple_one()
 }
 
-pub async fn handle_not_found(reject: Rejection) -> Result<impl Reply, Rejection> {
-    if reject.is_not_found() {
-        Ok(StatusCode::NOT_FOUND)
-    } else {
-        Err(reject)
-    }
+pub async fn handle_not_found(_reject: Rejection) -> Result<impl Reply, Rejection> {
+    Ok(StatusCode::NOT_FOUND)
 }
 
 pub fn with_cals(
@@ -65,14 +56,14 @@ pub fn get_home_url() -> impl Filter<Extract = impl warp::Reply, Error = warp::R
 
 pub fn options_request() -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone
 {
-    warp::options().and_then(handlers::handle_options)
+    warp::options().and_then(move || handlers::handle_options(false))
 }
 
 pub fn options_request_cals(
 ) -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
     warp::options()
         .and(warp::path("cals"))
-        .and_then(handlers::handle_options_cals)
+        .and_then(move || handlers::handle_options(true))
 }
 
 pub fn get_calendars(
@@ -106,13 +97,15 @@ pub fn get_events(
 pub fn api(
     calendars: HashMap<String, Calendar>,
 ) -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
-    allowed_method().and(
-        options_request_cals()
-            .or(options_request())
-            .or(index())
-            .or(get_home_url())
-            .or(get_calendars(calendars.clone()))
-            .or(get_events(calendars.clone()))
-            .or(well_known()),
-    )
+    allowed_method()
+        .and(
+            options_request_cals()
+                .or(options_request())
+                .or(index())
+                .or(get_home_url())
+                .or(get_calendars(calendars.clone()))
+                .or(get_events(calendars.clone()))
+                .or(well_known()),
+        )
+        .recover(handle_not_found)
 }
