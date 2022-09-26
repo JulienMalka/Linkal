@@ -1,3 +1,4 @@
+use crate::Calendar;
 use bytes::Bytes;
 use exile::Node::Element;
 use phf::phf_map;
@@ -47,6 +48,34 @@ pub fn prepare_forwarded_body(body: &Bytes) -> String {
         "remote.php/dav/public-calendars",
     )
     .into_owned()
+}
+
+pub fn replace_relative_urls(calendar: &Calendar, response: &str) -> String {
+    let calendar_relative_url = calendar.url.split("/").collect::<Vec<&str>>()[3..].join("/");
+    let regex_relative_url = Regex::new(&calendar_relative_url).unwrap();
+    regex_relative_url
+        .replace_all(&response, format!("cals/{}", calendar.path))
+        .into_owned()
+}
+
+pub fn replace_owners(response: &str) -> String {
+    let regex_owner = Regex::new(r"<d:owner>(.*?)</d:owner>").unwrap();
+    let response = regex_owner.replace_all(&response, "<d:owner>/principals/mock</d:owner>");
+
+    let regex_current_principal =
+        Regex::new(r"<d:current-user-principal>(.*?)</d:current-user-principal>").unwrap();
+    let response = regex_current_principal.replace_all(
+        &response,
+        "<d:current-user-principal><d:href>/principals/mock</d:href></d:current-user-principal>",
+    );
+
+    let regex_owner_principal =
+        Regex::new(r"<oc:owner-principal>(.*?)</oc:owner-principal>").unwrap();
+    let response = regex_owner_principal.replace_all(
+        &response,
+        "<oc:owner-principal>/principals/mock/</oc:owner-principal>",
+    );
+    response.to_string()
 }
 
 pub fn generate_response(props: Vec<String>, path: &str, principal: bool) -> String {

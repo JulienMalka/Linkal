@@ -85,7 +85,8 @@ pub fn get_calendars(
         .and(with_cals(calendars))
         .and(warp::header::<u32>("Depth"))
         .and(warp::body::bytes())
-        .and_then(handlers::handle_cals)
+        .then(handlers::handle_cals)
+        .map(into_response)
 }
 
 pub fn get_calendars_proppatch(
