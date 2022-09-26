@@ -116,7 +116,8 @@ pub fn get_events(
         .and(warp::method())
         .and(with_cals(calendars))
         .and(warp::header::optional::<u32>("Depth"))
-        .and_then(handlers::handle_events)
+        .then(handlers::handle_events)
+        .map(into_response)
 }
 
 pub fn api(
