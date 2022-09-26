@@ -71,7 +71,6 @@ pub async fn handle_events(
 pub async fn handle_cals(
     method: Method,
     calendars: HashMap<String, Calendar>,
-    depth: u32,
     req_body: Bytes,
 ) -> Result<impl warp::Reply, LinkalError> {
     let client = ureq::Agent::new();

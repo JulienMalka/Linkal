@@ -72,7 +72,6 @@ pub fn get_calendars(
     warp::path!("cals")
         .and(warp::method())
         .and(with_cals(calendars))
-        .and(warp::header::<u32>("Depth"))
         .and(warp::body::bytes())
         .then(handlers::handle_cals)
         .map(into_response)
