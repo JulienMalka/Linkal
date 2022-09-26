@@ -48,9 +48,9 @@ pub fn allowed_method() -> impl Filter<Extract = (), Error = warp::Rejection> + 
 }
 
 pub fn get_home_url() -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
-    warp::path!("principals" / "mock")
+    warp::path!("principals" / "linkal")
         .and(warp::body::bytes())
-        .then(move |b: bytes::Bytes| handlers::handle_propfind_locally(b, "/principals/mock/"))
+        .then(move |b: bytes::Bytes| handlers::handle_propfind_locally(b, "/principals/linkal/"))
         .map(into_response)
 }
 

@@ -6,15 +6,15 @@ use regex::Regex;
 use std::str;
 
 static PROPS: phf::Map<&'static str, &str> = phf_map! {
-    "principal-URL" => "<d:principal-URL><d:href>/principals/mock/</d:href></d:principal-URL>",
+    "principal-URL" => "<d:principal-URL><d:href>/principals/linkal/</d:href></d:principal-URL>",
     "displayname" => "<d:displayname>Linkal</d:displayname>",
     "calendar-home-set" => "<cal:calendar-home-set><d:href>/cals/</d:href></cal:calendar-home-set>",
-    "current-user-principal" => "<d:current-user-principal><d:href>/principals/mock/</d:href></d:current-user-principal>",
+    "current-user-principal" => "<d:current-user-principal><d:href>/principals/linkal/</d:href></d:current-user-principal>",
     "email-address-set" => "<cs:email-address-set><cs:email-address>hello@linkal.fr</cs:email-address></cs:email-address-set>",
    "supported-report-set" => "<d:supported-report-set><d:supported-report><d:report><d:expand-property/></d:report></d:supported-report><d:supported-report><d:report><d:principal-match/></d:report></d:supported-report><d:supported-report><d:report><d:principal-property-search/></d:report></d:supported-report><d:supported-report><d:report><d:principal-search-property-set/></d:report></d:supported-report><d:supported-report><d:report><oc:filter-comments/></d:report></d:supported-report><d:supported-report><d:report><oc:filter-files/></d:report></d:supported-report></d:supported-report-set>",
     "calendar-user-address-set" => r#"<cal:calendar-user-address-set>
-                    <d:href>mailto:julien@malka.sh</d:href>
-                    <d:href>/remote.php/dav/principals/users/Julien/</d:href>
+                    <d:href>mailto:linkal@linkal.dev</d:href>
+                    <d:href>/principals/linkal/</d:href>
                     </cal:calendar-user-address-set>"#,
 
 };
@@ -60,20 +60,20 @@ pub fn replace_relative_urls(calendar: &Calendar, response: &str) -> String {
 
 pub fn replace_owners(response: &str) -> String {
     let regex_owner = Regex::new(r"<d:owner>(.*?)</d:owner>").unwrap();
-    let response = regex_owner.replace_all(&response, "<d:owner>/principals/mock/</d:owner>");
+    let response = regex_owner.replace_all(&response, "<d:owner>/principals/linkal/</d:owner>");
 
     let regex_current_principal =
         Regex::new(r"<d:current-user-principal>(.*?)</d:current-user-principal>").unwrap();
     let response = regex_current_principal.replace_all(
         &response,
-        "<d:current-user-principal><d:href>/principals/mock/</d:href></d:current-user-principal>",
+        "<d:current-user-principal><d:href>/principals/linkal/</d:href></d:current-user-principal>",
     );
 
     let regex_owner_principal =
         Regex::new(r"<oc:owner-principal>(.*?)</oc:owner-principal>").unwrap();
     let response = regex_owner_principal.replace_all(
         &response,
-        "<oc:owner-principal>/principals/mock/</oc:owner-principal>",
+        "<oc:owner-principal>/principals/linkal/</oc:owner-principal>",
     );
     response.to_string()
 }
