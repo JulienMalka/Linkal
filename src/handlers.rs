@@ -1,19 +1,10 @@
-use crate::propfind;
-use crate::propfind::prepare_forwarded_body;
-use crate::utils::LinkalError;
-use crate::Calendar;
-use crate::ConversionError;
-use crate::OtherError;
+use crate::{propfind, utils::LinkalError, Calendar, ConversionError, OtherError};
 use bytes::Bytes;
-use http::Method;
-use http::StatusCode;
+use http::{Method, StatusCode};
 use regex::Regex;
-use std::collections::HashMap;
-use std::convert::Infallible;
-use std::str;
+use std::{collections::HashMap, convert::Infallible, str};
 use ureq;
-use warp::http::Response;
-use warp::http::Uri;
+use warp::http::{Response, Uri};
 use warp::Rejection;
 
 pub async fn handle_propfind_locally(
@@ -70,7 +61,7 @@ pub async fn handle_events(
         .request(method.as_str(), &calendar_url)
         .set("Depth", &depth.unwrap_or(0).to_string())
         .set("Content-Type", "application/xml")
-        .send_bytes(prepare_forwarded_body(&req_body).as_bytes())?
+        .send_bytes(propfind::prepare_forwarded_body(&req_body).as_bytes())?
         .into_string()?;
 
     // Then we have to highjack the response to make it look like we sent it

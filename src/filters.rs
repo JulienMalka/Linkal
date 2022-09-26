@@ -1,13 +1,7 @@
-use crate::handlers;
-use crate::utils::into_response;
-use crate::Calendar;
+use crate::{handlers, utils::into_response, Calendar};
 use std::collections::HashMap;
-use warp::hyper::Method;
-use warp::hyper::StatusCode;
-use warp::reject;
-use warp::Filter;
-use warp::Rejection;
-use warp::Reply;
+use warp::hyper::{Method, StatusCode};
+use warp::{reject, Filter, Rejection, Reply};
 
 #[derive(Debug)]
 struct MethodError;
