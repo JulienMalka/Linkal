@@ -13,9 +13,12 @@ pub struct Calendar {
 
 pub fn parse_calendar_json(path: &str) -> HashMap<String, Calendar> {
     let json_data = fs::read_to_string(path).expect("Unable to read calendars file");
-    let cals: serde_json::Value = serde_json::from_str(&json_data).unwrap();
+    let cals: serde_json::Value =
+        serde_json::from_str(&json_data).expect("The calendars file is not a valid json file");
     let cals = &cals["calendars"];
-    let cals: &Map<String, Value> = cals.as_object().unwrap();
+    let cals: &Map<String, Value> = cals
+        .as_object()
+        .expect("The json file doesn't follow the required format");
     let mut calendars = HashMap::new();
     for (url, value) in cals {
         let url_vec: Vec<&str> = url.split("/").collect();
