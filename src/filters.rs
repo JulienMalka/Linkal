@@ -50,8 +50,6 @@ pub fn index() -> impl Filter<Extract = impl warp::Reply, Error = Rejection> + C
 
 pub fn allowed_method() -> impl Filter<Extract = (), Error = warp::Rejection> + Clone {
     warp::options()
-        .or(method(PROPPATCH_METHOD))
-        .unify()
         .or(method(PROPFIND_METHOD))
         .unify()
         .or(method(REPORT_METHOD))
@@ -89,16 +87,6 @@ pub fn get_calendars(
         .map(into_response)
 }
 
-pub fn get_calendars_proppatch(
-    calendars: HashMap<String, Calendar>,
-) -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
-    warp::path!("cals")
-        .and(warp::body::bytes())
-        .and(warp::method())
-        .and(with_cals(calendars))
-        .and_then(handlers::handle_cals_proppatch)
-}
-
 pub fn well_known() -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
     warp::path!(".well-known" / "caldav").and_then(handlers::handle_well_known)
 }
@@ -124,7 +112,6 @@ pub fn api(
             .or(index())
             .or(get_home_url())
             .or(get_calendars(calendars.clone()))
-            .or(get_calendars_proppatch(calendars.clone()))
             .or(get_events(calendars.clone()))
             .or(well_known()),
     )

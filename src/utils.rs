@@ -8,6 +8,7 @@ use warp::Reply;
 #[derive(Debug)]
 pub enum LinkalError {
     Forbidden,
+    XMLError(exile::error::Error),
     ParsingError(Utf8Error),
     UpstreamError(ureq::Error),
     IOError(std::io::Error),
@@ -31,6 +32,12 @@ impl From<std::io::Error> for LinkalError {
     }
 }
 
+impl From<exile::error::Error> for LinkalError {
+    fn from(err: exile::error::Error) -> Self {
+        LinkalError::XMLError(err)
+    }
+}
+
 impl LinkalError {
     fn status_code_body(self: LinkalError) -> (StatusCode, String) {
         match self {
@@ -41,6 +48,7 @@ impl LinkalError {
             LinkalError::ParsingError(_) => (StatusCode::BAD_REQUEST, "PARSING".to_string()),
             LinkalError::UpstreamError(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()),
             LinkalError::IOError(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()), // Mismatched hash
+            LinkalError::XMLError(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()),
         }
     }
 }

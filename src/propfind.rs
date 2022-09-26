@@ -60,14 +60,14 @@ pub fn replace_relative_urls(calendar: &Calendar, response: &str) -> String {
 
 pub fn replace_owners(response: &str) -> String {
     let regex_owner = Regex::new(r"<d:owner>(.*?)</d:owner>").unwrap();
-    let response = regex_owner.replace_all(&response, "<d:owner>/principals/mock</d:owner>");
+    let response = regex_owner.replace_all(&response, "<d:owner>/principals/mock/</d:owner>");
 
     let regex_current_principal =
         Regex::new(r"<d:current-user-principal>(.*?)</d:current-user-principal>").unwrap();
-    let response = regex_current_principal.replace_all(
-        &response,
-        "<d:current-user-principal><d:href>/principals/mock</d:href></d:current-user-principal>",
-    );
+    //let response = regex_current_principal.replace_all(
+    //    &response,
+    //   "<d:current-user-principal><d:href>/principals/mock/</d:href></d:current-user-principal>",
+    //);
 
     let regex_owner_principal =
         Regex::new(r"<oc:owner-principal>(.*?)</oc:owner-principal>").unwrap();
