@@ -21,5 +21,5 @@ async fn main() {
     let path = cli.calendar_file;
     let calendars = utils::parse_calendar_json(path.to_str().unwrap());
     let routes = filters::api(calendars);
-    warp::serve(routes).run(([127, 0, 0, 1], 3030)).await;
+    warp::serve(routes).run(([127, 0, 0, 1], 4145)).await;
 }
