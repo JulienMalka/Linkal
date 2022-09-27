@@ -9,7 +9,7 @@
         inherit (pkgs.darwin.apple_sdk.frameworks) Security;
         pkgs = nixpkgs.legacyPackages.${system};
         linkal = with pkgs; rustPlatform.buildRustPackage rec {
-          pname = "linkal";
+          name = "linkal";
           version = "0.1.0";
 
           src = ./.;
