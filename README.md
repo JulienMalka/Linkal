@@ -56,7 +56,7 @@ The calendars have to be **public**. Linkal does not perform any authentificatio
 linkal --calendar-file <FILE>
 ```
 
-This command will start the Linkal Server on port ``8443``. It is recommanded that you host Linkal behind a reverse proxy with https enabled.
+This command will start the Linkal Server on port ``8443``. It is recommanded that you host Linkal behind a reverse proxy with https enabled (like Nginx for example).
 
 ### Add a linkal calendar in a CalDav client
 
@@ -66,7 +66,7 @@ Supported clients are :
 - ✅ Thunderbird
 - ✅ Apple calendar
 
-⚠️ Some client may need you to go to advanced options and hard set the port of the service, which would be 443 if you run Linkal behind a reverse proxy with https enabled. 
+⚠️ Some clients may need you to go to advanced options and hard set the port of the service, which would be ``443`` if you run Linkal behind a reverse proxy with https enabled. 
 
 If your calendar client is supported and not on this list, please open a pr/issue. If your favorite calendar client is not supported, open an issue. 
 
