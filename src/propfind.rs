@@ -78,6 +78,32 @@ pub fn replace_owners(response: &str) -> String {
     response.to_string()
 }
 
+pub fn replace_name(response: &str, name: &str) -> String {
+    let regex_display_name = Regex::new(r"<d:displayname>(.*?)</d:displayname>").unwrap();
+    return regex_display_name
+        .replace_all(
+            &response,
+            format!("<d:displayname>{}</d:displayname>", name),
+        )
+        .into_owned();
+}
+
+pub fn replace_color(response: &str, color: &str) -> String {
+    let regex_display_name = Regex::new(
+        r#"<x1:calendar-color xmlns:x1="http://apple.com/ns/ical/">(.*?)</x1:calendar-color>"#,
+    )
+    .unwrap();
+    return regex_display_name
+        .replace_all(
+            &response,
+            format!(
+                r#"<x1:calendar-color xmlns:x1="http://apple.com/ns/ical/">{}</x1:calendar-color>"#,
+                color
+            ),
+        )
+        .into_owned();
+}
+
 pub fn generate_response(props: Vec<String>, path: &str, principal: bool) -> String {
     let mut props_res = props
         .into_iter()

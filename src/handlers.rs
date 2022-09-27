@@ -62,6 +62,13 @@ pub async fn handle_events(
     // Change the relative url of the calendar / events
     let response = propfind::replace_relative_urls(&calendars[&path], &response);
 
+    let response = propfind::replace_name(&response, &calendars[&path].name);
+
+    let response = match &calendars[&path].color {
+        Some(c) => propfind::replace_color(&response, &c),
+        None => response,
+    };
+
     return Ok(Response::builder()
         .status(StatusCode::from_u16(207).unwrap())
         .header("Content-Type", "application/xml; charset=utf-8")
@@ -100,9 +107,14 @@ pub async fn handle_cals(
             .send_bytes(req_body.as_ref())?
             .into_string()?;
 
-        // TODO : find a better method here
         let response_calendar = propfind::replace_relative_urls(&calendar, &response_calendar);
         let response_calendar = propfind::replace_owners(&response_calendar);
+        let response_calendar = propfind::replace_name(&response_calendar, &calendar.name);
+
+        let response_calendar = match calendar.color {
+            Some(c) => propfind::replace_color(&response_calendar, &c),
+            None => response_calendar,
+        };
 
         let response_dom = exile::parse(response_calendar)?
             .root()

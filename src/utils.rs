@@ -9,6 +9,7 @@ pub struct Calendar {
     pub name: String,
     pub url: String,
     pub path: String,
+    pub color: Option<String>,
 }
 
 pub fn parse_calendar_json(path: &str) -> HashMap<String, Calendar> {
@@ -25,6 +26,9 @@ pub fn parse_calendar_json(path: &str) -> HashMap<String, Calendar> {
                 name: String::from(value["name"].as_str().unwrap_or("Unamed calendar")),
                 url: String::from(url),
                 path: String::from(url_vec[url_vec.len() - 1]),
+                color: value
+                    .get("color")
+                    .map(|v| String::from(v.as_str().unwrap())),
             },
         );
     }
