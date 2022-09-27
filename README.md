@@ -38,10 +38,10 @@ Linkal is configured using a json file describing your calendars. The file has t
 ```json
 {
   "calendars": {
-    "https://calendar1.link": {
+    "https://calendar1.link/public-calendar/path": {
       "name": "Calendar 1 name",
     },
-    "https://calendar2.link": {
+    "https://calendar2.link/public-calendar/path": {
       "name": "Calendar 2 name",
       "color": "#c63b52",
     }
@@ -49,9 +49,6 @@ Linkal is configured using a json file describing your calendars. The file has t
 }
 ```
 The calendars have to be **public**. Linkal does not perform any authentification. The ``color`` field is optionnal. If provided, the color of the calendar will be overriden by Linkal. This is useful if several of the calendars you're aggregating have the same color.
-
-
-An example of configuration file can be found in [examples/calendars.json](https://github.com/JulienMalka/Linkal/tree/main/exemples/calendars.json).
 
 ### Running
 
