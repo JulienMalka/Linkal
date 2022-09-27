@@ -78,7 +78,9 @@ Linkal is in development phase and can be succeptible to bugs. Identified elemen
 - More abstract handling of propfind requests
 - More reasonable format of the config file
 - Allowing to override more calendar fields 
+- Ability to serve multiple calendar collections
 - Better support of the [RFC 4791](https://datatracker.ietf.org/doc/html/rfc4791) (Long term)
 - Filtering protocol, if possible actionnable from the calendar client or a web interface (Long term)
+- Supporting private calendars with auth en both sides
 
 
