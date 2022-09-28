@@ -1,0 +1,1 @@
+Any contribution is welcome. If you wan't to contribute to the project, fork it, work in a local branch and then open a pull request. If you are unsure about a change you want to make, please open an issue before so we can discuss it.
