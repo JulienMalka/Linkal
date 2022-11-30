@@ -3,7 +3,6 @@
 [![made-with-rust](https://img.shields.io/badge/Made%20with-Rust-1f425f.svg)](https://www.rust-lang.org/)
 [![built with nix](https://img.shields.io/static/v1?logo=nixos&logoColor=white&label=&message=Built%20with%20Nix&color=41439a)](https://builtwithnix.org)
 ![GitHub repo size](https://img.shields.io/github/repo-size/JulienMalka/Linkal?label=Size)
-![Lines of code](https://img.shields.io/tokei/lines/github/JulienMalka/Linkal?color=26b79b)
 
 Linkal is a public-calendar aggregator server. Given a set a public calendars links, it can make a CalDav client believe all these calendars are part of the same calendar collection. It makes it easy to source public calendars from multiples users and locations and easily distribute them to your end user.
 It works by exposing the same endpoints as a real CalDav server, emulating responses when needed and otherwise forwarding the requests to the upstream servers.
