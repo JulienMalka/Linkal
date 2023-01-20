@@ -72,7 +72,7 @@ If your calendar client is supported and not on this list, please open a pr/issu
 ## 🚧 Roadmap
 
 Linkal is in development phase and can be succeptible to bugs. Identified elements for upcoming developments are :
-- Parallel requests to answer to /cals requests
+- Parallel requests to answer to ``/cals`` requests
 - Improve the auto discovery of the service
 - More abstract handling of propfind requests
 - More reasonable format of the config file
