@@ -31,7 +31,7 @@
         );
 
       hydraJobs = {
-        linkal.x86_64-linux = packages.linkal.x86_64-linux;
+        linkal = packages.linkal.x86_64-linux;
       };
     };
 }
