@@ -1,5 +1,5 @@
 # Linkal
-[![Build Status](https://ci.julienmalka.me/api/badges/JulienMalka/Linkal/status.svg?ref=refs/heads/main)](https://ci.julienmalka.me/JulienMalka/Linkal)
+[![Build status](https://ci.julienmalka.me/badges/nix-eval.svg)](https://ci.julienmalka.me/#/builders/4)
 [![made-with-rust](https://img.shields.io/badge/Made%20with-Rust-1f425f.svg)](https://www.rust-lang.org/)
 [![built with nix](https://img.shields.io/static/v1?logo=nixos&logoColor=white&label=&message=Built%20with%20Nix&color=41439a)](https://builtwithnix.org)
 ![GitHub repo size](https://img.shields.io/github/repo-size/JulienMalka/Linkal?label=Size)
