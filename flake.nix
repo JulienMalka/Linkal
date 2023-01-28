@@ -4,26 +4,34 @@
   inputs.flake-utils.url = "github:numtide/flake-utils";
 
   outputs = { self, nixpkgs, flake-utils }:
-    flake-utils.lib.eachDefaultSystem (system:
-      let
-        inherit (pkgs.darwin.apple_sdk.frameworks) Security;
-        pkgs = nixpkgs.legacyPackages.${system};
-        linkal = with pkgs; rustPlatform.buildRustPackage rec {
-          name = "linkal";
-          version = "0.1.0";
 
-          src = ./.;
+    rec {
 
-          buildInputs = lib.optionals stdenv.isDarwin [ darwin.apple_sdk.frameworks.Security ];
+      packages = flake-utils.lib.eachDefaultSystem
+        (system:
+          let
+            inherit (pkgs.darwin.apple_sdk.frameworks) Security;
+            pkgs = nixpkgs.legacyPackages.${system};
+            linkal = with pkgs; rustPlatform.buildRustPackage rec {
+              name = "linkal";
+              version = "0.1.0";
 
-          cargoLock = {
-            lockFile = ./Cargo.lock;
-          };
-        };
-      in
-      rec {
-        defaultPackage = linkal;
-      }
-    );
+              src = ./.;
 
+              buildInputs = lib.optionals stdenv.isDarwin [ darwin.apple_sdk.frameworks.Security ];
+
+              cargoLock = {
+                lockFile = ./Cargo.lock;
+              };
+            };
+          in
+          {
+            linkal = linkal;
+          }
+        );
+
+      hydraJobs = {
+        linkal.x86_64-linux = packages.linkal.x86_64-linux;
+      };
+    };
 }
