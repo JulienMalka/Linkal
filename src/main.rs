@@ -11,6 +11,9 @@ use utils::Calendar;
 struct Cli {
     #[clap(short, long, value_parser, value_name = "FILE")]
     calendar_file: PathBuf,
+
+    #[clap(short, long, value_parser, value_name = "port")]
+    port: Option<u16>,
 }
 
 #[tokio::main]
@@ -21,5 +24,5 @@ async fn main() {
     let path = cli.calendar_file;
     let calendars = utils::parse_calendar_json(path.to_str().unwrap());
     let routes = filters::api(calendars);
-    warp::serve(routes).run(([127, 0, 0, 1], 8443)).await;
+    warp::serve(routes).run(([127, 0, 0, 1], cli.port.unwrap_or(8443))).await;
 }
