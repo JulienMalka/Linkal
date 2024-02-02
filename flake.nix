@@ -31,7 +31,7 @@
         );
 
       defaultPackage = packages.linkal;
-      hydraJobs = {
+      checks = {
         linkal = packages.linkal.x86_64-linux;
       };
     };
