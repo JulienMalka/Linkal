@@ -20,10 +20,6 @@ nix build
 nix-build
 ```
 
-### 🐳 Docker users
-
-Please be serious.
-
 ### Others
 
 Having cargo installed, run ``cargo build``.
