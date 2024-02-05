@@ -23,9 +23,9 @@
             };
           };
         in
-        {
+        rec {
           defaultPackage = linkal;
-          checks = linkal;
+          checks = { inherit linkal; inherit (packages) docker-image; };
           packages = {
             linkal = linkal;
             docker-image = pkgs.dockerTools.buildLayeredImage
