@@ -28,6 +28,13 @@
           checks = linkal;
           packages = {
             linkal = linkal;
+            docker-image = pkgs.dockerTools.buildLayeredImage
+              {
+                name = "linkal";
+                tag = "latest";
+                config.Cmd = [ "${linkal}/bin/linkal /data/calendars.json" ];
+
+              };
           };
         }
       ));
