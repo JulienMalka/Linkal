@@ -5,34 +5,32 @@
 
   outputs = { self, nixpkgs, flake-utils }:
 
-    rec {
+    (flake-utils.lib.eachDefaultSystem
+      (system:
+        let
+          inherit (pkgs.darwin.apple_sdk.frameworks) Security;
+          pkgs = nixpkgs.legacyPackages.${system};
+          linkal = with pkgs; rustPlatform.buildRustPackage rec {
+            name = "linkal";
+            version = "0.1.0";
 
-      packages = flake-utils.lib.eachDefaultSystem
-        (system:
-          let
-            inherit (pkgs.darwin.apple_sdk.frameworks) Security;
-            pkgs = nixpkgs.legacyPackages.${system};
-            linkal = with pkgs; rustPlatform.buildRustPackage rec {
-              name = "linkal";
-              version = "0.1.0";
+            src = ./.;
 
-              src = ./.;
+            buildInputs = lib.optionals stdenv.isDarwin [ darwin.apple_sdk.frameworks.Security ];
 
-              buildInputs = lib.optionals stdenv.isDarwin [ darwin.apple_sdk.frameworks.Security ];
-
-              cargoLock = {
-                lockFile = ./Cargo.lock;
-              };
+            cargoLock = {
+              lockFile = ./Cargo.lock;
             };
-          in
-          {
+          };
+        in
+        {
+          defaultPackage = linkal;
+          checks = linkal;
+          packages = {
             linkal = linkal;
-          }
-        );
-
-      defaultPackage = packages.linkal;
-      checks = {
-        linkal = packages.linkal.x86_64-linux;
-      };
-    };
+          };
+        }
+      ));
 }
+
+    
