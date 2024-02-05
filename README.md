@@ -22,7 +22,7 @@ nix-build
 
 ### 🐳 Docker users
 
-Please be serious.
+One can build a docker image for docker by running `nix build .#docker-image`.
 
 ### Others
 
