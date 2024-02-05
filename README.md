@@ -22,7 +22,7 @@ nix-build
 
 ### 🐳 Docker users
 
-Please be serious.
+Will be added soon...
 
 ### Others
 
